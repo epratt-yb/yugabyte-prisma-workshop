@@ -50,6 +50,23 @@ npm install
 
 </details>
 
+## Switch to another database (e.g. PostgreSQL, MySQL, SQL Server, MongoDB)
+
+If you want to try this example with another database than SQLite, you can adjust the the database connection in [`prisma/schema.prisma`](./prisma/schema.prisma) by reconfiguring the `datasource` block. 
+
+Learn more about the different connection configurations in the [docs](https://www.prisma.io/docs/reference/database-reference/connection-urls).
+
+### PostgreSQL
+
+For PostgreSQL, the connection URL has the following structure:
+
+```prisma
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
+}
+```
+
 ### 2. Create and seed the database
 
 Run the following command to create your SQLite database file. This also creates the `User` and `Post` tables that are defined in [`prisma/schema.prisma`](./prisma/schema.prisma):
@@ -82,49 +99,6 @@ The schema that specifies the API operations of your GraphQL server is defined i
 
 Feel free to adjust any operation by adding or removing fields. The GraphQL Playground helps you with its auto-completion and query validation features.
 
-### Retrieve all published posts and their authors
-
-```graphql
-query {
-  feed {
-    id
-    title
-    content
-    published
-    author {
-      id
-      name
-      email
-    }
-  }
-}
-```
-
-<details><summary><strong>See more API operations</strong></summary>
-
-### Retrieve the drafts of a user
-
-```graphql
-{
-  draftsByUser(
-    userUniqueInput: {
-      email: "mahmoud@prisma.io"
-    }
-  ) {
-    id
-    title
-    content
-    published
-    author {
-      id
-      name
-      email
-    }
-  }
-}
-```
-
-
 ### Create a new user
 
 ```graphql
@@ -134,6 +108,7 @@ mutation {
   }
 }
 ```
+<details><summary><strong>See more API operations</strong></summary>
 
 ### Create a new draft
 
@@ -149,6 +124,46 @@ mutation {
     author {
       id
       name
+    }
+  }
+}
+```
+  
+### Retrieve the drafts of a user
+
+```graphql
+{
+  draftsByUser(
+    userUniqueInput: {
+      email: "alice@prisma.io"
+    }
+  ) {
+    id
+    title
+    content
+    published
+    author {
+      id
+      name
+      email
+    }
+  }
+}
+```
+
+### Retrieve all published posts and their authors
+
+```graphql
+query {
+  feed {
+    id
+    title
+    content
+    published
+    author {
+      id
+      name
+      email
     }
   }
 }
@@ -375,7 +390,7 @@ const User = objectType({
           })
           .posts()
       },
-+   t.field('profile', {
++   profile: t.field('profile', {
 +     type: 'Profile',
 +     resolve: (parent, _, context) => {
 +       return context.prisma.user.findUnique({
@@ -468,135 +483,6 @@ mutation {
   }
 }
 ```
-
-<details><summary>Expand to view more sample Prisma Client queries on <code>Profile</code></summary>
-
-Here are some more sample Prisma Client queries on the new <code>Profile</code> model:
-
-##### Create a new profile for an existing user
-
-```ts
-const profile = await prisma.profile.create({
-  data: {
-    bio: 'Hello World',
-    user: {
-      connect: { email: 'alice@prisma.io' },
-    },
-  },
-})
-```
-
-##### Create a new user with a new profile
-
-```ts
-const user = await prisma.user.create({
-  data: {
-    email: 'john@prisma.io',
-    name: 'John',
-    profile: {
-      create: {
-        bio: 'Hello World',
-      },
-    },
-  },
-})
-```
-
-##### Update the profile of an existing user
-
-```ts
-const userWithUpdatedProfile = await prisma.user.update({
-  where: { email: 'alice@prisma.io' },
-  data: {
-    profile: {
-      update: {
-        bio: 'Hello Friends',
-      },
-    },
-  },
-})
-```
-
-</details>
-
-## Switch to another database (e.g. PostgreSQL, MySQL, SQL Server, MongoDB)
-
-If you want to try this example with another database than SQLite, you can adjust the the database connection in [`prisma/schema.prisma`](./prisma/schema.prisma) by reconfiguring the `datasource` block. 
-
-Learn more about the different connection configurations in the [docs](https://www.prisma.io/docs/reference/database-reference/connection-urls).
-
-<details><summary>Expand for an overview of example configurations with different databases</summary>
-
-### PostgreSQL
-
-For PostgreSQL, the connection URL has the following structure:
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = "postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA"
-}
-```
-
-Here is an example connection string with a local PostgreSQL database:
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = "postgresql://janedoe:mypassword@localhost:5432/notesapi?schema=public"
-}
-```
-
-### MySQL
-
-For MySQL, the connection URL has the following structure:
-
-```prisma
-datasource db {
-  provider = "mysql"
-  url      = "mysql://USER:PASSWORD@HOST:PORT/DATABASE"
-}
-```
-
-Here is an example connection string with a local MySQL database:
-
-```prisma
-datasource db {
-  provider = "mysql"
-  url      = "mysql://janedoe:mypassword@localhost:3306/notesapi"
-}
-```
-
-### Microsoft SQL Server
-
-Here is an example connection string with a local Microsoft SQL Server database:
-
-```prisma
-datasource db {
-  provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;initial catalog=sample;user=sa;password=mypassword;"
-}
-```
-
-### MongoDB
-
-Here is an example connection string with a local MongoDB database:
-
-```prisma
-datasource db {
-  provider = "mongodb"
-  url      = "mongodb://USERNAME:PASSWORD@HOST/DATABASE?authSource=admin&retryWrites=true&w=majority"
-}
-```
-Because MongoDB is currently in [Preview](https://www.prisma.io/docs/about/releases#preview), you need to specify the `previewFeatures` on your `generator` block:
-
-```
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongodb"]
-}
-```
-</details>
 
 ## Next steps
 
